@@ -1,0 +1,28 @@
+# ikeda Laboratory Internal MIT-based License
+
+Copyright (c) 2025 ikeda Laboratory So Sato
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), **only within the XXX Laboratory**, to deal
+in the Software without restriction within the laboratory, including without limitation the rights
+to use, copy, modify, merge, and/or publish within the laboratory, subject to the following conditions:
+
+1. **Internal Use Only**  
+   This Software may be used only by current members (students, faculty, and staff) of the ikeda Laboratory.  
+   Distribution or disclosure of the Software, in whole or in part, to any person or organization outside the laboratory is strictly prohibited without prior written permission from the laboratory head.
+
+2. **Modification Sharing**  
+   Any modifications made to the Software must be stored in the laboratory's shared repository and made accessible to future members.
+
+3. **Copyright Notice**  
+   The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software within the laboratory.
+
+---
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
