@@ -14,8 +14,8 @@ class DepthGraph(QWidget):
         label_y = getattr(base, "GRAPH_Y_LABEL", "Depth [m]")
         x_range = getattr(base, "GRAPH_X_RANGE", None)  # 例: (0, 60)
         y_range = getattr(base, "GRAPH_Y_RANGE", None)  # 例: (0, 100)
-        min_h   = getattr(base, "GRAPH_MIN_HEIGHT", 200)
-        min_w   = getattr(base, "GRAPH_MIN_WIDTH",  300)
+        min_h   = getattr(base, "GRAPH_MIN_HEIGHT", 100)  # 細長くするため高さを小さく
+        min_w   = getattr(base, "GRAPH_MIN_WIDTH",  400)  # 幅を大きく
 
         # ---- UI 構築 ----
         self.plot = pg.PlotWidget(self)

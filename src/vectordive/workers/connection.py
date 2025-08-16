@@ -12,13 +12,10 @@ class WaitHeartbeat:
         try:
             hb = self.master.wait_heartbeat(timeout=timeout)
             if hb is not None:
-                print("Heartbeat received")
                 return True
             else:
-                print("Error: Heartbeat not received within timeout")
                 return False
         except Exception as e:
-            print(f"Error waiting for heartbeat: {e}")
             return False
 
 if __name__ == "__main__":
