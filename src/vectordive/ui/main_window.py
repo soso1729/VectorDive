@@ -5,10 +5,20 @@ from vectordive.ui.widgets.telemetry_bars import ProgressBar
 
 class MainWindow(QMainWindow):
     ##テスト用でtelemetry_bars.pyのみを表示する
-    def __init__(self):
+    def __init__(self, connection_info=None):
         super().__init__()
-        self.setWindowTitle("Vector Dive - Thruster Control")
+        
+        # 接続情報がある場合はタイトルに表示
+        if connection_info:
+            title = f"Vector Dive - Thruster Control ({connection_info['ip']}:{connection_info['port']})"
+        else:
+            title = "Vector Dive - Thruster Control"
+        
+        self.setWindowTitle(title)
         self.setGeometry(100, 100, 600, 400)
+        
+        # 接続情報を保存
+        self.connection_info = connection_info
 
         # メインウィジェットの設定
         self.main_widget = QWidget()
@@ -29,17 +39,18 @@ class telemetry_window:
 
     def update_thruster_value(self, value):
         """Update the thruster value in the progress bar."""
-        self.progress_bar.set_value(value)
+        self.main_window.progress_bar.set_value(value)
 
     def get_thruster_value(self):
         """Get the current thruster value from the progress bar."""
-        return self.progress_bar.get_value()
+        return self.main_window.progress_bar.get_value()
 
 class depth_graph_window:
-    def __init__(self):
+    def __init__(self, main_window):
         from vectordive.ui.widgets.depth_graph import DepthGraph
+        self.main_window = main_window
         self.depth_graph = DepthGraph()
-        self.layout.addWidget(self.depth_graph.get_widget())
+        self.main_window.layout.addWidget(self.depth_graph.get_widget())
 
     def update_depth_graph(self, time_data, depth_data):
         """Update the depth graph with new data."""

@@ -8,4 +8,6 @@ class MakeEdit:
     
     def get_widget(self, label):
         return (label, self.edit) 
+
+        
     
