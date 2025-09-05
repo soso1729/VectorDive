@@ -190,48 +190,52 @@ class MainWindow(QMainWindow):
         from PyQt5.QtGui import QPen, QBrush, QColor
         
         # グラフィックスシーンを作成
-        scene = QGraphicsScene()
+        self.map_scene = QGraphicsScene()
         
         # グリッドサイズ（より大きな範囲）
-        grid_size = 15
-        grid_width = 60
-        grid_height = 45
+        self.grid_size = 15
+        self.grid_width = 60
+        self.grid_height = 45
         
         # グリッドを描画
-        for x in range(grid_width + 1):
-            for y in range(grid_height + 1):
+        for x in range(self.grid_width + 1):
+            for y in range(self.grid_height + 1):
                 # 縦線
-                if x <= grid_width:
-                    line = scene.addLine(x * grid_size, 0, x * grid_size, grid_height * grid_size, 
+                if x <= self.grid_width:
+                    line = self.map_scene.addLine(x * self.grid_size, 0, x * self.grid_size, self.grid_height * self.grid_size, 
                                        QPen(QColor(100, 100, 100), 1))
                 # 横線
-                if y <= grid_height:
-                    line = scene.addLine(0, y * grid_size, grid_width * grid_size, y * grid_size, 
+                if y <= self.grid_height:
+                    line = self.map_scene.addLine(0, y * self.grid_size, self.grid_width * self.grid_size, y * self.grid_size, 
                                        QPen(QColor(100, 100, 100), 1))
         
         # 中心点をマーク
-        center_x = grid_width // 2 * grid_size
-        center_y = grid_height // 2 * grid_size
-        center_marker = scene.addEllipse(center_x - 5, center_y - 5, 10, 10, 
+        self.center_x = self.grid_width // 2 * self.grid_size
+        self.center_y = self.grid_height // 2 * self.grid_size
+        self.center_marker = self.map_scene.addEllipse(self.center_x - 5, self.center_y - 5, 10, 10, 
                                         QPen(QColor(255, 0, 0), 2), 
                                         QBrush(QColor(255, 0, 0)))
         
         # 中心点のラベル
-        center_text = scene.addText("CENTER")
-        center_text.setDefaultTextColor(QColor(255, 0, 0))
-        center_text.setPos(center_x + 15, center_y - 10)
+        self.center_text = self.map_scene.addText("CENTER")
+        self.center_text.setDefaultTextColor(QColor(255, 0, 0))
+        self.center_text.setPos(self.center_x + 15, self.center_y - 10)
         
         # 座標軸のラベル
-        x_label = scene.addText("X")
+        x_label = self.map_scene.addText("X")
         x_label.setDefaultTextColor(QColor(255, 255, 255))
-        x_label.setPos(grid_width * grid_size + 10, grid_height * grid_size // 2)
+        x_label.setPos(self.grid_width * self.grid_size + 10, self.grid_height * self.grid_size // 2)
         
-        y_label = scene.addText("Y")
+        y_label = self.map_scene.addText("Y")
         y_label.setDefaultTextColor(QColor(255, 255, 255))
-        y_label.setPos(grid_width * grid_size // 2, -20)
+        y_label.setPos(self.grid_width * self.grid_size // 2, -20)
+        
+        # 位置推定マーカー（初期化）
+        self.position_marker = None
+        self.position_text = None
         
         # グラフィックスビューを作成
-        view = QGraphicsView(scene)
+        view = QGraphicsView(self.map_scene)
         view.setStyleSheet("""
             QGraphicsView {
                 background-color: #2b2b2b;
@@ -252,6 +256,20 @@ class MainWindow(QMainWindow):
         # 6つのスラスター用の縦並びプログレスバー
         self.progress_bar = ProgressBar()
         layout.addWidget(self.progress_bar.get_widget())
+        
+        # 位置推定ウィジェットを追加
+        try:
+            from vectordive.ui.widgets.position_estimation import PositionEstimationManager
+            self.position_estimation_manager = PositionEstimationManager(self.connection_info, self)
+            layout.addWidget(self.position_estimation_manager.get_widget())
+        except ImportError as e:
+            # インポートエラーの場合はプレースホルダーを表示
+            from PyQt5.QtWidgets import QLabel
+            placeholder = QLabel("Position Estimation Widget\n(Not available)")
+            placeholder.setStyleSheet("color: #888888; font-style: italic;")
+            placeholder.setAlignment(Qt.AlignCenter)
+            layout.addWidget(placeholder)
+            self.position_estimation_manager = None
 
         return partition
 
@@ -326,6 +344,17 @@ class MainWindow(QMainWindow):
         # Ctrl+Shift+R でリセット
         self.reset_shortcut = QShortcut(QKeySequence("Ctrl+Shift+R"), self)
         self.reset_shortcut.activated.connect(self.reset_debug_mode)
+        
+        # Ctrl+Shift+P で位置推定リセット
+        self.position_reset_shortcut = QShortcut(QKeySequence("Ctrl+Shift+P"), self)
+        self.position_reset_shortcut.activated.connect(self.reset_position_estimation)
+        
+        # キーボードショートカットの説明をコンソールに出力
+        print("キーボードショートカット:")
+        print("  Ctrl+Shift+D: デバッグモード切り替え")
+        print("  Ctrl+Shift+T: テレメトリテストデータ生成")
+        print("  Ctrl+Shift+R: デバッグモードリセット")
+        print("  Ctrl+Shift+P: 位置推定リセット")
         
         # デバッグモードフラグ
         self.debug_mode = False
@@ -445,6 +474,52 @@ class MainWindow(QMainWindow):
             default_data = (0, 0, 0, 0, 0, 0)
             self.progress_bar.update_from_servo_data(*default_data)
             self.progress_bar.telemetry_label.setText("Telemetry: Debug mode reset")
+            
+    def reset_position_estimation(self):
+        """位置推定をリセット"""
+        if hasattr(self, 'position_estimation_manager') and self.position_estimation_manager:
+            self.position_estimation_manager.reset_position_estimation()
+            # マップの位置マーカーもリセット
+            self.update_map_position([0, 0, 0])
+            print("位置推定をリセットしました")
+        else:
+            print("位置推定マネージャーが利用できません")
+            
+    def update_map_position(self, position):
+        """マップに位置推定の結果を表示"""
+        if not hasattr(self, 'map_scene') or position is None:
+            return
+            
+        try:
+            from PyQt5.QtGui import QPen, QBrush, QColor
+            
+            # スケールファクター（メートルからピクセルへの変換）
+            scale_factor = 10  # 1メートル = 10ピクセル
+            
+            # 位置をピクセル座標に変換
+            x_pixel = self.center_x + position[0] * scale_factor
+            y_pixel = self.center_y - position[1] * scale_factor  # Y軸は反転
+            
+            # 既存のマーカーを削除
+            if self.position_marker:
+                self.map_scene.removeItem(self.position_marker)
+            if self.position_text:
+                self.map_scene.removeItem(self.position_text)
+            
+            # 新しいマーカーを作成
+            self.position_marker = self.map_scene.addEllipse(
+                x_pixel - 8, y_pixel - 8, 16, 16,
+                QPen(QColor(0, 255, 0), 2),
+                QBrush(QColor(0, 255, 0))
+            )
+            
+            # 位置ラベルを作成
+            self.position_text = self.map_scene.addText(f"({position[0]:.1f}, {position[1]:.1f})")
+            self.position_text.setDefaultTextColor(QColor(0, 255, 0))
+            self.position_text.setPos(x_pixel + 20, y_pixel - 10)
+            
+        except Exception as e:
+            print(f"マップ位置更新エラー: {e}")
 
     def resize_partitions(self, telemetry_ratio=0.25, right_ratio=0.75):
         """パーティションのサイズを動的に調整する"""
@@ -459,6 +534,11 @@ class MainWindow(QMainWindow):
         """ウィンドウが閉じられる際の処理"""
         if hasattr(self, 'telemetry_timer'):
             self.telemetry_timer.stop()
+            
+        # 位置推定を停止
+        if hasattr(self, 'position_estimation_manager') and self.position_estimation_manager:
+            self.position_estimation_manager.stop_position_estimation()
+            
         event.accept()
 
 if __name__ == "__main__":
